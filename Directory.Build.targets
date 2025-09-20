@@ -1,7 +1,6 @@
-<![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <NoWarn>$(NoWarn);SA1200;SA1633;SA1636</NoWarn>
   </PropertyGroup>
 </Project>
-]]>

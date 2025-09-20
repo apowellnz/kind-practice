@@ -7,8 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Cors" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AJP.Application\AJP.Application.csproj" />
+    <ProjectReference Include="..\AJP.Infrastructure\AJP.Infrastructure.csproj" />
+    <ProjectReference Include="..\AJP.Infrastructure.Persistence\AJP.Infrastructure.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
