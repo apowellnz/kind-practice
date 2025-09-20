@@ -3,7 +3,7 @@ name: kind-practice
 
 vars:
   POSTGRES_PASSWORD: postgres
-  
+
 # This is a list of `pipelines` that DevSpace can execute (you can define your own)
 pipelines:
   # This is the pipeline for the main command: `devspace dev` (or `devspace run-pipeline dev`)
@@ -34,6 +34,7 @@ deployments:
       manifests:
         - manifests/postgres-deployment.yaml
         - manifests/postgres-service.yaml
+        - manifests/flyway-pvc.yaml
         - manifests/flyway-deployment.yaml
 
 # This is a list of `dev` containers that are based on the containers created by your deployments
@@ -69,14 +70,14 @@ dev:
   #   # Open the following URLs once they return an HTTP status code other than 502 or 503
   #   open:
   #     - url: http://localhost:8080
-  
+
   postgres:
     labelSelector:
       app.kubernetes.io/component: postgres
     ports:
       - port: 5432
 
-# Use the `commands` section to define repeatable dev workflows for this project 
+# Use the `commands` section to define repeatable dev workflows for this project
 commands:
   migrate-db:
     command: |-
@@ -86,18 +87,22 @@ commands:
         echo "Flyway pod not found. Please make sure the deployment is running."
         exit 1
       fi
-      
+
       POSTGRES_POD=$(kubectl get pods -l app.kubernetes.io/component=postgres -o jsonpath='{.items[0].metadata.name}')
       if [ -z "$POSTGRES_POD" ]; then
         echo "PostgreSQL pod not found. Please make sure the deployment is running."
         exit 1
       fi
-      
+
+      # Copy migrations to the Flyway pod
+      echo "Copying migrations to Flyway pod..."
+      ./copy-migrations.sh
+
       echo "Applying migrations to database..."
       kubectl exec $FLYWAY_POD -- flyway -url=jdbc:postgresql://postgres:5432/ajp_db -user=postgres -password=${POSTGRES_PASSWORD} migrate
-      
+
       echo "Migration complete!"
-  
+
   create-migration:
     command: |-
       if [ -z "$1" ]; then
@@ -105,24 +110,22 @@ commands:
         echo "Usage: devspace run create-migration <migration_name>"
         exit 1
       fi
-      
+
       MIGRATION_NAME=$1
       TIMESTAMP=$(date +%Y%m%d%H%M%S)
       FILENAME="V${TIMESTAMP}__${MIGRATION_NAME}.sql"
-      
+
       echo "Creating new migration: $FILENAME"
       mkdir -p migrations
       touch "migrations/${FILENAME}"
-      
+
       echo "-- Migration: ${MIGRATION_NAME}" > "migrations/${FILENAME}"
       echo "-- Created: $(date)" >> "migrations/${FILENAME}"
       echo "" >> "migrations/${FILENAME}"
       echo "-- Write your SQL migration statements here" >> "migrations/${FILENAME}"
-      
+
       echo "Migration file created: migrations/${FILENAME}"
-      echo "Don't forget to update the ConfigMap after adding your SQL statements:"
-      echo "kubectl delete configmap flyway-migrations"
-      echo "kubectl create configmap flyway-migrations --from-file=./migrations/"
+      echo "After adding your SQL statements, run:"
       echo "devspace run migrate-db"
 
   db-info:
@@ -133,7 +136,7 @@ commands:
         echo "Flyway pod not found. Please make sure the deployment is running."
         exit 1
       fi
-      
+
       kubectl exec $FLYWAY_POD -- flyway -url=jdbc:postgresql://postgres:5432/ajp_db -user=postgres -password=${POSTGRES_PASSWORD} info
 
 hooks:
@@ -142,10 +145,10 @@ hooks:
     command: |-
       echo "Waiting for PostgreSQL to be ready..."
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=postgres --timeout=60s
-      
+
       echo "Waiting for Flyway to be ready..."
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=flyway --timeout=60s
-      
+
       echo "Running initial database setup..."
       devspace run migrate-db
 

@@ -1,0 +1,8 @@
+FROM flyway/flyway:9.21
+
+# Copy migration scripts
+COPY migrations/ /flyway/sql/
+
+# Set default command
+ENTRYPOINT ["flyway"]
+CMD ["-url=jdbc:postgresql://postgres:5432/ajp_db", "-user=postgres", "-password=postgres", "migrate"]

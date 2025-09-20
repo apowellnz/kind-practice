@@ -33,14 +33,38 @@ This guide explains how to set up a streamlined Kubernetes development environme
    devspace dev
    ```
 
-### 2. Database Setup
+### 2. VS Code Integration
 
-The application uses PostgreSQL for data storage. When running `devspace dev`, the following happens:
+The project includes VS Code configurations for seamless development:
 
-1. PostgreSQL is deployed as a pod in Kubernetes
-2. A Flyway migration tool pod is deployed to handle database migrations
-3. Initial database migrations are run to create the schema
-4. The API can connect to the database
+#### Launch Configurations
+
+- **Launch .NET API**: Builds and runs the .NET API with debugger attached
+- **Launch Frontend**: Starts the React frontend with hot reloading
+- **Run Database Migrations**: Executes pending database migrations
+- **Create New Migration**: Creates a new migration file
+- **Show Database Info**: Displays migration status
+- **DevSpace: Deploy All**: Deploys the entire application stack
+- **Full Stack: API + Frontend**: Starts both API and frontend together
+
+To use these configurations:
+1. Open the "Run and Debug" sidebar in VS Code (Ctrl+Shift+D)
+2. Select a configuration from the dropdown
+3. Click the green play button or press F5
+
+#### Tasks
+
+The project includes several VS Code tasks that can be run via:
+- Press Ctrl+Shift+P
+- Type "Tasks: Run Task"
+- Select one of the following tasks:
+  - `build-api`: Build the API project
+  - `run-migrations`: Run database migrations
+  - `create-migration`: Create a new migration file
+  - `db-info`: Show migration status
+  - `psql-connect`: Connect to PostgreSQL interactively
+  - `restart-flyway`: Restart the Flyway pod
+  - `devspace-dev`: Start the full DevSpace environment
 
 ### 3. Managing Database Migrations
 
@@ -55,10 +79,8 @@ devspace run migrate-db
 ```bash
 devspace run create-migration <migration_name>
 ```
-This creates a timestamped SQL file in the `migrations` folder. After adding your SQL, update the ConfigMap:
+This creates a timestamped SQL file in the `migrations` folder. After adding your SQL, just run:
 ```bash
-kubectl delete configmap flyway-migrations
-kubectl create configmap flyway-migrations --from-file=./migrations/
 devspace run migrate-db
 ```
 
@@ -77,6 +99,24 @@ Use the `db-connect.sh` script to quickly access the database:
 ./db-connect.sh "SELECT * FROM products"
 ```
 
+#### Handling Large Migrations (Production)
+
+For larger projects with many migrations, the repository includes several options:
+
+1. **Host Path Volume** (Development): Currently, migrations are stored on the host and mounted into the Flyway container.
+
+2. **Persistent Volume** (Staging/Production): For persistent storage, a PVC is defined in `manifests/flyway-pvc.yaml`.
+
+3. **Custom Docker Image** (Production): For production, build a custom Flyway image that includes your migrations:
+   ```bash
+   docker build -t your-registry/flyway-migrations:v1 -f Dockerfile.flyway .
+   ```
+
+4. **Migration Job** (Production): Run migrations as a Kubernetes Job during deployment:
+   ```bash
+   kubectl apply -f manifests/flyway-job.yaml
+   ```
+
 ### 4. Database Structure
 
 The database includes the following tables:
@@ -88,6 +128,7 @@ The database includes the following tables:
 - `user_to_roles`: Join table linking users to roles
 - `orders`: Customer orders with status and shipping information
 - `order_items`: Products included in each order
+- `product_reviews`: Customer reviews for products
 - `flyway_schema_history`: Tracks applied migrations
 
 ### 5. Sample Data
@@ -97,6 +138,7 @@ Sample data has been pre-loaded into the database, including:
 - Sample products in each category
 - Product-category relationships
 - Admin user account
+- Product reviews with ratings
 
 ## Troubleshooting
 
@@ -113,6 +155,13 @@ If the API cannot connect to the database:
 1. Verify that the PostgreSQL pod is running with `kubectl get pods`
 2. Check the pod logs with `kubectl logs <postgres-pod-name>`
 3. Ensure the connection string in the API configuration is correct
+
+### VS Code Debugging Issues
+
+If debugging doesn't work:
+1. Ensure you've installed the recommended extensions (Ctrl+Shift+P > "Show Recommended Extensions")
+2. Make sure the API is built before trying to debug it
+3. Check that port forwarding is working for the database connection
 
 ## Resources
 

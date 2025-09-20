@@ -14,13 +14,19 @@ spec:
         app.kubernetes.io/component: flyway
     spec:
       containers:
-      - name: flyway
-        image: flyway/flyway:9.21
-        command: ["sleep", "infinity"]
-        volumeMounts:
-        - name: migrations
-          mountPath: /flyway/sql
+        - name: flyway
+          image: flyway/flyway:9.21
+          command: ["sleep", "infinity"]
+          volumeMounts:
+            - name: migrations
+              mountPath: /flyway/sql
+            # Mount the host migrations directory
+            - name: host-migrations
+              mountPath: /migrations
       volumes:
-      - name: migrations
-        configMap:
-          name: flyway-migrations
+        - name: migrations
+          emptyDir: {}
+        # Add a host path volume for development (replace with PVC in production)
+        - name: host-migrations
+          hostPath:
+            path: /home/anthony/Documents/Projects/POCs/kind-practice/migrations
