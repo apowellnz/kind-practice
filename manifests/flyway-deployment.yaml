@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flyway
+  labels:
+    app.kubernetes.io/component: flyway
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: flyway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: flyway
+    spec:
+      containers:
+      - name: flyway
+        image: flyway/flyway:9.21
+        command: ["sleep", "infinity"]
+        volumeMounts:
+        - name: migrations
+          mountPath: /flyway/sql
+      volumes:
+      - name: migrations
+        configMap:
+          name: flyway-migrations

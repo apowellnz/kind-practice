@@ -19,48 +19,106 @@ This guide explains how to set up a streamlined Kubernetes development environme
 - .NET SDK (for .NET development)
 - DevSpace CLI (we'll install this below)
 
-## 1. Initial Setup
+## Getting Started
 
-### 1.1 Docker Desktop with kind Backend
+### 1. Initial Setup
 
-1. Install Docker Desktop for Linux
-2. Enable Kubernetes in Docker Desktop settings
-   - Select "kind" as the backend 
-   - Select number of nodes (1 or more)
+1. Initialize DevSpace in your project:
+   ```bash
+   devspace init
+   ```
 
-### 1.2 Install kubectl CLI (if not already installed)
+2. Run DevSpace to deploy the application:
+   ```bash
+   devspace dev
+   ```
 
+### 2. Database Setup
+
+The application uses PostgreSQL for data storage. When running `devspace dev`, the following happens:
+
+1. PostgreSQL is deployed as a pod in Kubernetes
+2. A Flyway migration tool pod is deployed to handle database migrations
+3. Initial database migrations are run to create the schema
+4. The API can connect to the database
+
+### 3. Managing Database Migrations
+
+The project uses Flyway for database migrations. DevSpace provides commands to make working with migrations easier:
+
+#### Running Migrations
 ```bash
-# Using Homebrew
-brew install kubectl
-
-# Alternative: Download binary
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
+devspace run migrate-db
 ```
 
-### 1.3 Install DevSpace CLI
-
+#### Creating a New Migration
 ```bash
-# Install DevSpace
-curl -L -o devspace "https://github.com/loft-sh/devspace/releases/latest/download/devspace-linux-amd64"
-chmod +x devspace
-sudo mv devspace /usr/local/bin
-
-# Verify installation
-devspace version
+devspace run create-migration <migration_name>
+```
+This creates a timestamped SQL file in the `migrations` folder. After adding your SQL, update the ConfigMap:
+```bash
+kubectl delete configmap flyway-migrations
+kubectl create configmap flyway-migrations --from-file=./migrations/
+devspace run migrate-db
 ```
 
-### 1.4 Verify the Setup
-
+#### Checking Migration Status
 ```bash
-# Set the docker-desktop context
-kubectl config use-context docker-desktop
-
-# Verify nodes are running
-kubectl get nodes
+devspace run db-info
 ```
+
+#### Quick Database Access
+Use the `db-connect.sh` script to quickly access the database:
+```bash
+# Interactive mode
+./db-connect.sh
+
+# Run a specific SQL command
+./db-connect.sh "SELECT * FROM products"
+```
+
+### 4. Database Structure
+
+The database includes the following tables:
+- `products`: Stores product information including name, description, price, and stock
+- `categories`: Stores category information 
+- `product_categories`: Join table linking products to categories
+- `users`: User accounts with authentication information
+- `user_roles`: Available user roles (Admin, User, Manager)
+- `user_to_roles`: Join table linking users to roles
+- `orders`: Customer orders with status and shipping information
+- `order_items`: Products included in each order
+- `flyway_schema_history`: Tracks applied migrations
+
+### 5. Sample Data
+
+Sample data has been pre-loaded into the database, including:
+- Electronics, Clothing, and Books categories
+- Sample products in each category
+- Product-category relationships
+- Admin user account
+
+## Troubleshooting
+
+### Image Pull Issues
+
+If you encounter `ImagePullBackOff` errors:
+1. Try using a different image tag (e.g., postgres:13 instead of postgres:14)
+2. Pull the image locally using `docker pull`
+3. Verify network connectivity to Docker Hub
+
+### Database Connection Issues
+
+If the API cannot connect to the database:
+1. Verify that the PostgreSQL pod is running with `kubectl get pods`
+2. Check the pod logs with `kubectl logs <postgres-pod-name>`
+3. Ensure the connection string in the API configuration is correct
+
+## Resources
+
+- [DevSpace Documentation](https://devspace.sh/docs/getting-started/introduction)
+- [Kubernetes Documentation](https://kubernetes.io/docs/)
+- [Flyway Documentation](https://flywaydb.org/documentation/)
 
 ## 2. Creating the .NET Solution Structure with DDD Architecture
 
@@ -1232,7 +1290,6 @@ public static IServiceCollection AddApplication(this IServiceCollection services
     return services;
 }
 ```
-```
 
 #### 3.4.2 Adding Logging Behavior
 
@@ -1274,7 +1331,6 @@ services.AddMediatR(cfg =>
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 });
-```
 ```
 
 #### 3.4.3 Adding Caching with CQRS
@@ -1356,7 +1412,7 @@ services.AddMediatR(cfg =>
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
 });
 ```
-```
+
 
 ## 4. Integrating CQRS with DevSpace in Kubernetes
 
@@ -1644,7 +1700,6 @@ export const productService = {
 };
 ```
 
-## 3. Creating the Development Deployments
 
 ## 3. Creating the Development Deployments with DevSpace
 
