@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AJP.Application</name>
+    </assembly>
+    <members>
+        <member name="T:AJP.Application.ApplicationModule">
+            <summary>
+            Application service container.
+            </summary>
+        </member>
+        <member name="M:AJP.Application.ApplicationModule.Initialize">
+            <summary>
+            Initializes the application module.
+            </summary>
+        </member>
+    </members>
+</doc>

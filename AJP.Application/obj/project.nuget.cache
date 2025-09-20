@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Hzx2dcBBPtqrY9A3yXg/15XcRR9lvwpitBfwWo38s1MKXa8/R9e0MSPP5wYJ7Tj/Mr1dnzh82TxBD4kmBbDebw==",
+  "success": true,
+  "projectFilePath": "/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Application/AJP.Application.csproj",
+  "expectedPackageFiles": [
+    "/home/anthony/.nuget/packages/sonaranalyzer.csharp/9.12.0.78982/sonaranalyzer.csharp.9.12.0.78982.nupkg.sha512",
+    "/home/anthony/.nuget/packages/stylecop.analyzers/1.1.118/stylecop.analyzers.1.1.118.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,14 @@
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.AssemblyInfoInputs.cache
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.AssemblyInfo.cs
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.csproj.CoreCompileInputs.cache
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.sourcelink.json
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.xml
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/bin/Debug/net8.0/AJP.Domain.deps.json
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/bin/Debug/net8.0/AJP.Domain.dll
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/bin/Debug/net8.0/AJP.Domain.pdb
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/bin/Debug/net8.0/AJP.Domain.xml
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.dll
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/refint/AJP.Domain.dll
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/AJP.Domain.pdb
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Domain/obj/Debug/net8.0/ref/AJP.Domain.dll

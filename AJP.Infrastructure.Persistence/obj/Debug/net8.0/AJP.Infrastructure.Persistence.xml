@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AJP.Infrastructure.Persistence</name>
+    </assembly>
+    <members>
+        <member name="T:AJP.Infrastructure.Persistence.PersistenceModule">
+            <summary>
+            Persistence infrastructure service container.
+            </summary>
+        </member>
+        <member name="M:AJP.Infrastructure.Persistence.PersistenceModule.Initialize">
+            <summary>
+            Initializes the persistence module.
+            </summary>
+        </member>
+    </members>
+</doc>

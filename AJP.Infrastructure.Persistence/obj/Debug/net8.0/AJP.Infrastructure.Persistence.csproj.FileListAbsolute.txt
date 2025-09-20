@@ -1,0 +1,14 @@
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.GeneratedMSBuildEditorConfig.editorconfig
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.AssemblyInfoInputs.cache
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.AssemblyInfo.cs
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.csproj.CoreCompileInputs.cache
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.sourcelink.json
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.xml
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/bin/Debug/net8.0/AJP.Infrastructure.Persistence.deps.json
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/bin/Debug/net8.0/AJP.Infrastructure.Persistence.dll
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/bin/Debug/net8.0/AJP.Infrastructure.Persistence.pdb
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/bin/Debug/net8.0/AJP.Infrastructure.Persistence.xml
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.dll
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/refint/AJP.Infrastructure.Persistence.dll
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/AJP.Infrastructure.Persistence.pdb
+/home/anthony/Documents/Projects/POCs/kind-practice/AJP.Infrastructure.Persistence/obj/Debug/net8.0/ref/AJP.Infrastructure.Persistence.dll
