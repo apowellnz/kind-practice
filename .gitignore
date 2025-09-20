@@ -87,6 +87,8 @@ artifacts/
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
+# NuGet Package Lock Files
+**/packages.lock.json
 
 # Visual Studio cache files
 # files ending in .cache can be ignored
