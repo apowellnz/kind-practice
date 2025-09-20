@@ -697,6 +697,7 @@ public static class DependencyInjection
         return services;
     }
 }
+
 ```
 
 ### 2.6 Update Infrastructure.Persistence Layer for CQRS
