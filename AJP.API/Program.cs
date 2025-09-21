@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AJP.Application;
 using AJP.Application.Common.Models;
 using AJP.Application.Products.Commands.CreateProduct;
 using AJP.Application.Products.Commands.DeleteProduct;
@@ -6,6 +7,8 @@ using AJP.Application.Products.Commands.UpdateProduct;
 using AJP.Application.Products.Queries.GetAllProducts;
 using AJP.Application.Products.Queries.GetProductById;
 using AJP.Domain.Entities;
+using AJP.Infrastructure;
+using AJP.Infrastructure.Persistence;
 using MediatR;
 
 namespace AJP.API;
@@ -25,8 +28,15 @@ public static class Program
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        // builder.Services.AddInfrastructure(builder.Configuration);
-        // builder.Services.AddPersistence(builder.Configuration);
+
+        // Add Application services (MediatR, FluentValidation, etc.)
+        builder.Services.AddApplication();
+
+        // Add Infrastructure services
+        builder.Services.AddInfrastructure(builder.Configuration);
+
+        // Add Persistence services (Database, Repositories)
+        builder.Services.AddPersistence(builder.Configuration);
 
         WebApplication app = builder.Build();
 
@@ -38,6 +48,11 @@ public static class Program
         }
 
         app.UseHttpsRedirection();
+
+        // Add health check endpoint
+        app.MapGet("/health", () => Results.Ok("Healthy"))
+            .WithName("HealthCheck")
+            .WithOpenApi();
 
         // Group endpoints by feature
         RouteGroupBuilder productsGroup = app.MapGroup("/products")
@@ -83,7 +98,7 @@ public static class Program
 
                 try
                 {
-                    var result = await mediator.Send(command);
+                    Result<Unit> result = await mediator.Send(command);
 
                     if (!result.IsSuccess)
                     {
@@ -102,13 +117,12 @@ public static class Program
         productsGroup.MapDelete("/{id}", async (int id, IMediator mediator) =>
             {
                 var command = new DeleteProductCommand(id);
-                var result = await mediator.Send(command);
+                Result<Unit> result = await mediator.Send(command);
 
                 if (!result.IsSuccess)
                 {
                     return Results.NotFound(result.Error);
                 }
-
 
                 return Results.NoContent();
             })

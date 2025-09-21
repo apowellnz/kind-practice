@@ -12,19 +12,22 @@ pipelines:
       run_dependencies --all       # 1. Deploy any projects this project needs (see "dependencies")
       ensure_pull_secrets --all    # 2. Ensure pull secrets
       create_deployments database  # 3. Deploy database
+      create_deployments api       # 4. Deploy API
   # You can run this pipeline via `devspace deploy` (or `devspace run-pipeline deploy`)
   deploy:
     run: |-
       run_dependencies --all       # 1. Deploy any projects this project needs (see "dependencies")
       ensure_pull_secrets --all    # 2. Ensure pull secrets
       create_deployments database  # 3. Deploy database
+      create_deployments api       # 4. Deploy API
 
 # This is a list of `images` that DevSpace can build for this project
-# We recommend to skip image building during development (devspace dev) as much as possible
-# images:
-#  app:
-#    image: username/app
-#    dockerfile: ./Dockerfile
+images:
+  api:
+    image: ajp-api
+    dockerfile: ./Dockerfile.api
+    build:
+      disabled: false
 
 # This is a list of `deployments` that DevSpace can create for this project
 deployments:
@@ -36,6 +39,11 @@ deployments:
         - manifests/postgres-service.yaml
         - manifests/flyway-pvc.yaml
         - manifests/flyway-deployment.yaml
+
+  api:
+    kubectl:
+      manifests:
+        - api-deployment.yaml
 
 # This is a list of `dev` containers that are based on the containers created by your deployments
 dev:
@@ -75,7 +83,13 @@ dev:
     labelSelector:
       app.kubernetes.io/component: postgres
     ports:
-      - port: 5432
+      - port: "5432"
+
+  api:
+    labelSelector:
+      app.kubernetes.io/component: api
+    ports:
+      - port: "8080:80"
 
 # Use the `commands` section to define repeatable dev workflows for this project
 commands:
@@ -139,6 +153,22 @@ commands:
 
       kubectl exec $FLYWAY_POD -- flyway -url=jdbc:postgresql://postgres:5432/ajp_db -user=postgres -password=${POSTGRES_PASSWORD} info
 
+  build-api:
+    command: |-
+      echo "Building API image..."
+      devspace build -t api
+
+  deploy-api:
+    command: |-
+      echo "Deploying API..."
+      devspace deploy api
+
+      echo "Waiting for API pod to be ready..."
+      kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=api --timeout=60s
+
+      echo "API deployed successfully!"
+      echo "Access the API at: http://localhost:8080"
+
 hooks:
   - name: "Database Setup"
     events: ["after:deploy:database"]
@@ -151,6 +181,12 @@ hooks:
 
       echo "Running initial database setup..."
       devspace run migrate-db
+
+  - name: "API Setup"
+    events: ["after:deploy:api"]
+    command: |-
+      echo "API deployed successfully!"
+      echo "Access the API at: http://localhost:8080"
 
 # Define dependencies to other projects with a devspace.yaml
 # dependencies:

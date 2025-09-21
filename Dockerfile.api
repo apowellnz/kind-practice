@@ -1,0 +1,41 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy the entire solution and restore dependencies
+COPY ["AJP.KubeExample.sln", "./"]
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Build.targets", "./"]
+COPY ["Directory.Packages.props", "./"]
+COPY ["NuGet.config", "./"]
+
+# Copy project files
+COPY ["AJP.API/AJP.API.csproj", "AJP.API/"]
+COPY ["AJP.Application/AJP.Application.csproj", "AJP.Application/"]
+COPY ["AJP.Domain/AJP.Domain.csproj", "AJP.Domain/"]
+COPY ["AJP.Infrastructure/AJP.Infrastructure.csproj", "AJP.Infrastructure/"]
+COPY ["AJP.Infrastructure.Persistence/AJP.Infrastructure.Persistence.csproj", "AJP.Infrastructure.Persistence/"]
+
+# Restore packages
+RUN dotnet restore "AJP.API/AJP.API.csproj"
+
+# Copy everything else and build
+COPY . .
+WORKDIR "/src/AJP.API"
+RUN dotnet build "AJP.API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "AJP.API.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Add health check endpoint
+ENV ASPNETCORE_URLS=http://+:8080
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 CMD curl -f http://localhost:8080/health || exit 1
+
+ENTRYPOINT ["dotnet", "AJP.API.dll"]

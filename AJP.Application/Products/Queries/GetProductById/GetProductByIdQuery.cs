@@ -25,7 +25,6 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
             return Result<Product>.Failure($"Product with ID {request.Id} not found.");
         }
 
-
         return Result<Product>.Success(product);
     }
 }

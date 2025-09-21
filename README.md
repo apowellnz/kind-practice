@@ -65,6 +65,8 @@ The project includes several VS Code tasks that can be run via:
   - `psql-connect`: Connect to PostgreSQL interactively
   - `restart-flyway`: Restart the Flyway pod
   - `devspace-dev`: Start the full DevSpace environment
+  - `build-api`: Build the API image
+  - `deploy-api`: Deploy the API application
 
 ### 3. Managing Database Migrations
 
@@ -99,6 +101,29 @@ Use the `db-connect.sh` script to quickly access the database:
 ./db-connect.sh "SELECT * FROM products"
 ```
 
+#### Testing the API
+
+To test the API endpoints, use the provided script:
+
+```bash
+./test-api.sh
+```
+
+Or manually with curl:
+
+```bash
+# Get all products
+curl -s http://localhost:8080/products | jq
+
+# Create a new product
+curl -s -X POST http://localhost:8080/products \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Product","description":"A test product","price":19.99}' | jq
+
+# Get a specific product
+curl -s http://localhost:8080/products/1 | jq
+```
+
 #### Handling Large Migrations (Production)
 
 For larger projects with many migrations, the repository includes several options:
@@ -116,6 +141,33 @@ For larger projects with many migrations, the repository includes several option
    ```bash
    kubectl apply -f manifests/flyway-job.yaml
    ```
+
+### 4. Deploying the API
+
+For deploying the API, several options are available:
+
+1. **Using DevSpace**:
+   ```bash
+   # Build API image
+   devspace run build-api
+   
+   # Deploy API
+   devspace run deploy-api
+   ```
+
+2. **Manual Deployment**:
+   ```bash
+   # Build the Docker image
+   docker build -t ajp-api -f Dockerfile.api .
+   
+   # Deploy to Kubernetes
+   kubectl apply -f api-deployment.yaml
+   ```
+
+3. **Using VS Code Tasks**:
+   - Press Ctrl+Shift+P
+   - Type "Tasks: Run Task"
+   - Select `build-api` or `deploy-api`
 
 ### 4. Database Structure
 

@@ -11,8 +11,7 @@ public class DeleteProductCommandValidator : AbstractValidator<DeleteProductComm
 {
     public DeleteProductCommandValidator()
     {
-        RuleFor(v => v.Id)
-            .GreaterThan(0).WithMessage("Id must be greater than 0.");
+        _ = RuleFor(v => v.Id).GreaterThan(0).WithMessage("Id must be greater than 0.");
     }
 }
 
@@ -33,7 +32,6 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
         {
             return Result<Unit>.Failure($"Product with ID {request.Id} not found.");
         }
-
 
         return Result<Unit>.Success(Unit.Value);
     }

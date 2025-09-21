@@ -57,7 +57,6 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             return Result<Unit>.Failure($"Product with ID {request.Id} not found.");
         }
 
-
         return Result<Unit>.Success(Unit.Value);
     }
 }
