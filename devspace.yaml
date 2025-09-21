@@ -13,6 +13,7 @@ pipelines:
       ensure_pull_secrets --all    # 2. Ensure pull secrets
       create_deployments database  # 3. Deploy database
       create_deployments api       # 4. Deploy API
+      create_deployments frontend  # 5. Deploy Frontend
   # You can run this pipeline via `devspace deploy` (or `devspace run-pipeline deploy`)
   deploy:
     run: |-
@@ -20,12 +21,18 @@ pipelines:
       ensure_pull_secrets --all    # 2. Ensure pull secrets
       create_deployments database  # 3. Deploy database
       create_deployments api       # 4. Deploy API
+      create_deployments frontend  # 5. Deploy Frontend
 
 # This is a list of `images` that DevSpace can build for this project
 images:
   api:
     image: ajp-api
     dockerfile: ./Dockerfile.api
+    skipPush: true
+
+  frontend:
+    image: ajp-frontend
+    dockerfile: ./Dockerfile.frontend
     skipPush: true
 
 # This is a list of `deployments` that DevSpace can create for this project
@@ -43,6 +50,11 @@ deployments:
     kubectl:
       manifests:
         - api-deployment.yaml
+
+  frontend:
+    kubectl:
+      manifests:
+        - frontend-deployment.yaml
 
 # This is a list of `dev` containers that are based on the containers created by your deployments
 dev:
@@ -89,6 +101,12 @@ dev:
       app.kubernetes.io/component: api
     ports:
       - port: "8080:80"
+
+  frontend:
+    labelSelector:
+      app.kubernetes.io/component: frontend
+    ports:
+      - port: "3002:80"
 
 # Use the `commands` section to define repeatable dev workflows for this project
 commands:
@@ -173,6 +191,22 @@ commands:
       echo "API deployed successfully!"
       echo "Access the API at: http://localhost:8080"
 
+  build-frontend:
+    command: |-
+      echo "Building Frontend image..."
+      docker build -t ajp-frontend -f Dockerfile.frontend .
+
+  deploy-frontend:
+    command: |-
+      echo "Deploying Frontend..."
+      devspace deploy frontend
+
+      echo "Waiting for Frontend pod to be ready..."
+      kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=frontend --timeout=60s
+
+      echo "Frontend deployed successfully!"
+      echo "Access the Frontend at: http://localhost:3002"
+
 hooks:
   - name: "Database Setup"
     events: ["after:deploy:database"]
@@ -191,6 +225,12 @@ hooks:
     command: |-
       echo "API deployed successfully!"
       echo "Access the API at: http://localhost:8080"
+
+  - name: "Frontend Setup"
+    events: ["after:deploy:frontend"]
+    command: |-
+      echo "Frontend deployed successfully!"
+      echo "Access the Frontend at: http://localhost:3002"
 
 # Define dependencies to other projects with a devspace.yaml
 # dependencies:
