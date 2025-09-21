@@ -30,15 +30,15 @@ public static class Program
         builder.Services.AddSwaggerGen();
 
         // Add CORS policy
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll", policy =>
-            {
-                policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
-            });
-        });
+        builder.Services.AddCors(options => options.AddPolicy("AllowAll", policy => policy
+            .WithOrigins(
+                "http://localhost:3000", // React app
+                "http://localhost:5000", // Local API
+                "http://localhost:31481") // Kubernetes port-forwarded API
+            .SetIsOriginAllowedToAllowWildcardSubdomains()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()));
 
         // Add Application services (MediatR, FluentValidation, etc.)
         builder.Services.AddApplication();

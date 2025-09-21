@@ -17,10 +17,9 @@ export function FetchData() {
     setLoading(true);
     setError(null);
     try {
-      // In development, we might need to use a different URL for local testing
-      const apiUrl = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:5000/products' // API URL via port-forwarding
-        : 'api/Products/GetProducts';      // URL when running in containerized environment
+      // Get API URL from environment variable with fallback
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = `${baseUrl}/products`;
 
       console.log('Fetching products from:', apiUrl);
 
@@ -94,9 +93,8 @@ export function FetchData() {
   // Real API functions (using real endpoints)
   async function apiCreateProduct(product) {
     try {
-      const apiUrl = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:31481/products'
-        : 'api/Products/CreateProduct';
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = `${baseUrl}/products`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -119,9 +117,8 @@ export function FetchData() {
 
   async function apiUpdateProduct(product) {
     try {
-      const apiUrl = process.env.NODE_ENV === 'development'
-        ? `http://localhost:31481/products/${product.id}`
-        : `api/Products/UpdateProduct/${product.id}`;
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = `${baseUrl}/products/${product.id}`;
 
       const response = await fetch(apiUrl, {
         method: 'PUT',
@@ -143,9 +140,8 @@ export function FetchData() {
 
   async function apiDeleteProduct(id) {
     try {
-      const apiUrl = process.env.NODE_ENV === 'development'
-        ? `http://localhost:31481/products/${id}`
-        : `api/Products/DeleteProduct/${id}`;
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = `${baseUrl}/products/${id}`;
 
       const response = await fetch(apiUrl, {
         method: 'DELETE',

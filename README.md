@@ -129,7 +129,29 @@ cd AJP.Frontend/ClientApp
 npm start
 ```
 
-The React development server will start on port 3000. The frontend is configured to call the API at `http://localhost:5000`.
+The React development server will start on port 3000. The frontend is configured to use the environment variable `REACT_APP_API_URL` to determine which API endpoint to use.
+
+#### Switching Between API Endpoints
+
+You can easily switch the React app between pointing to the local API or the Kubernetes API using the provided script:
+
+```bash
+# Switch to local API
+./switch-api.sh local
+
+# Switch to Kubernetes API
+./switch-api.sh k8s
+
+# Or use the interactive menu
+./switch-api.sh
+```
+
+This script will:
+1. Update the `.env.local` file in the React app with the appropriate API URL
+2. Ensure the necessary services are running (e.g., applying the NodePort service)
+3. Provide an option to restart the frontend to apply changes
+
+After switching, you need to restart the frontend for the changes to take effect.
 
 ## Working with the Database
 
@@ -265,11 +287,20 @@ curl -s -X DELETE http://localhost:5000/products/1
 - **Solution**:
   - If API is running in Kubernetes:
     - Ensure port forwarding is active: `kubectl port-forward service/api 5000:80`
+    - Or use the NodePort service: `kubectl apply -f api-nodeport-service.yaml`
     - Check API pod is running: `kubectl get pods -l app.kubernetes.io/name=ajp-api`
     - Check API logs: `kubectl logs -l app.kubernetes.io/name=ajp-api`
   - If API is running locally:
     - Ensure API is running: `cd AJP.API && dotnet run`
     - Verify PostgreSQL port forwarding is active
+
+### CORS errors when accessing API
+- **Issue**: Browser shows CORS errors when accessing API from frontend
+- **Solution**:
+  - Make sure you're using the correct port (5000 for local API, 31481 for NodePort)
+  - Ensure the API is running with the updated CORS configuration
+  - If running in Kubernetes, redeploy the API after updating CORS settings
+  - Check that the Origin header in your request matches the allowed origins
 
 ### Database migrations not applied
 - **Issue**: Schema changes not showing up in the database
