@@ -29,6 +29,17 @@ public static class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        // Add CORS policy
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+
         // Add Application services (MediatR, FluentValidation, etc.)
         builder.Services.AddApplication();
 
@@ -48,6 +59,9 @@ public static class Program
         }
 
         app.UseHttpsRedirection();
+
+        // Use CORS
+        app.UseCors("AllowAll");
 
         // Add health check endpoint
         app.MapGet("/health", () => Results.Ok("Healthy"))

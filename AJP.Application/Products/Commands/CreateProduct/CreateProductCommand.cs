@@ -10,6 +10,7 @@ public record CreateProductCommand : IRequest<int>
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public decimal Price { get; init; }
+    public int Stock { get; init; }
 }
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
@@ -41,6 +42,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Name = request.Name,
             Description = request.Description,
             Price = request.Price,
+            Stock = request.Stock,
             CreatedAt = DateTime.UtcNow
         };
 

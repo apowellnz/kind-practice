@@ -211,6 +211,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-
 # Ignore DevSpace cache and log folder
 .devspace/
+
+# Developer-specific settings
+appsettings.Development.json
+*.Development.local.json

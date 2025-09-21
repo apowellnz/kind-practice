@@ -21,7 +21,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            const string sql = "SELECT * FROM Products ORDER BY Id";
+            const string sql = "SELECT id as Id, name as Name, description as Description, price as Price, stock as Stock, created_at as CreatedAt, updated_at as UpdatedAt FROM products ORDER BY id";
             return await _dbConnection.QueryAsync<Product>(sql);
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            const string sql = "SELECT * FROM Products WHERE Id = @Id";
+            const string sql = "SELECT id as Id, name as Name, description as Description, price as Price, stock as Stock, created_at as CreatedAt, updated_at as UpdatedAt FROM products WHERE id = @Id";
             return await _dbConnection.QueryFirstOrDefaultAsync<Product>(sql, new { Id = id });
         }
         catch (Exception ex)
@@ -50,9 +50,9 @@ public class ProductRepository : IProductRepository
         try
         {
             const string sql = @"
-                INSERT INTO Products (Name, Description, Price, CreatedAt) 
-                VALUES (@Name, @Description, @Price, @CreatedAt) 
-                RETURNING Id";
+                INSERT INTO products (name, description, price, stock, created_at) 
+                VALUES (@Name, @Description, @Price, @Stock, @CreatedAt) 
+                RETURNING id";
 
             return await _dbConnection.ExecuteScalarAsync<int>(sql, product);
         }
@@ -68,12 +68,13 @@ public class ProductRepository : IProductRepository
         try
         {
             const string sql = @"
-                UPDATE Products 
-                SET Name = @Name, 
-                    Description = @Description, 
-                    Price = @Price, 
-                    UpdatedAt = @UpdatedAt
-                WHERE Id = @Id";
+                UPDATE products 
+                SET name = @Name, 
+                    description = @Description, 
+                    price = @Price, 
+                    stock = @Stock,
+                    updated_at = @UpdatedAt
+                WHERE id = @Id";
 
             int rowsAffected = await _dbConnection.ExecuteAsync(sql, product);
             return rowsAffected > 0;
@@ -89,7 +90,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            const string sql = "DELETE FROM Products WHERE Id = @Id";
+            const string sql = "DELETE FROM products WHERE id = @Id";
             int rowsAffected = await _dbConnection.ExecuteAsync(sql, new { Id = id });
             return rowsAffected > 0;
         }

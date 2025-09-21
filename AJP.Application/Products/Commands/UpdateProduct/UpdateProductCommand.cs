@@ -12,6 +12,7 @@ public record UpdateProductCommand : IRequest<Result<Unit>>
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public decimal Price { get; init; }
+    public int Stock { get; init; }
 }
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
@@ -47,6 +48,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             Name = request.Name,
             Description = request.Description,
             Price = request.Price,
+            Stock = request.Stock,
             UpdatedAt = DateTime.UtcNow
         };
 

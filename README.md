@@ -1,227 +1,314 @@
-# Kubernetes Development Environment with DevSpace, Hot Reload and VS Code Debugging
+# Kind Practice - .NET API with React Frontend on Kubernetes
 
-This guide explains how to set up a streamlined Kubernetes development environment using:
-- DevSpace for simplified Kubernetes development workflow
-- kind (Kubernetes IN Docker) for local Kubernetes
-- React.js application with hot reloading
-- .NET Minimal API with hot reloading, DDD architecture, and CQRS pattern
-- PostgreSQL database with Dapper for data access
-- VS Code debugging integration for all services
-- Complete .NET solution structure
-- Modern C# coding practices (records, primary constructors, file-scoped namespaces)
+This guide explains how to set up a local development environment using:
+- Kubernetes IN Docker (kind) through Docker Desktop
+- .NET Core API with DDD architecture and CQRS pattern
+- React.js frontend application
+- PostgreSQL database with Flyway migrations
+- Complete development workflow with port forwarding
+
+This project demonstrates a local development setup with a .NET Core API, React frontend, and PostgreSQL database running in a Kubernetes cluster. The setup allows developers to:
+
+1. Run the database exclusively in Kubernetes
+2. Run the API either in Kubernetes or locally (both pointing to the same database)
+3. Run the React frontend locally for development
 
 ## Prerequisites
 
-- Docker Desktop for Linux (with Kubernetes enabled)
+- Docker Desktop with Kubernetes enabled
 - kubectl CLI
 - VS Code with appropriate extensions
 - Node.js & npm (for React development)
 - .NET SDK (for .NET development)
-- DevSpace CLI (we'll install this below)
+- DBeaver or another PostgreSQL client (optional)
 
 ## Getting Started
 
 ### 1. Initial Setup
 
-1. Initialize DevSpace in your project:
-   ```bash
-   devspace init
-   ```
+First, ensure Docker Desktop is running with Kubernetes enabled.
 
-2. Run DevSpace to deploy the application:
-   ```bash
-   devspace dev
-   ```
+#### Deploy PostgreSQL Database
 
-### 2. VS Code Integration
-
-The project includes VS Code configurations for seamless development:
-
-#### Launch Configurations
-
-- **Launch .NET API**: Builds and runs the .NET API with debugger attached
-- **Launch Frontend**: Starts the React frontend with hot reloading
-- **Run Database Migrations**: Executes pending database migrations
-- **Create New Migration**: Creates a new migration file
-- **Show Database Info**: Displays migration status
-- **DevSpace: Deploy All**: Deploys the entire application stack
-- **Full Stack: API + Frontend**: Starts both API and frontend together
-
-To use these configurations:
-1. Open the "Run and Debug" sidebar in VS Code (Ctrl+Shift+D)
-2. Select a configuration from the dropdown
-3. Click the green play button or press F5
-
-#### Tasks
-
-The project includes several VS Code tasks that can be run via:
-- Press Ctrl+Shift+P
-- Type "Tasks: Run Task"
-- Select one of the following tasks:
-  - `build-api`: Build the API project
-  - `run-migrations`: Run database migrations
-  - `create-migration`: Create a new migration file
-  - `db-info`: Show migration status
-  - `psql-connect`: Connect to PostgreSQL interactively
-  - `restart-flyway`: Restart the Flyway pod
-  - `devspace-dev`: Start the full DevSpace environment
-  - `build-api`: Build the API image
-  - `deploy-api`: Deploy the API application
-
-### 3. Managing Database Migrations
-
-The project uses Flyway for database migrations. DevSpace provides commands to make working with migrations easier:
-
-#### Running Migrations
 ```bash
-devspace run migrate-db
+# Deploy PostgreSQL service
+kubectl apply -f manifests/postgres-deployment.yaml
+kubectl apply -f manifests/postgres-service.yaml
+
+# Wait for PostgreSQL to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=postgres --timeout=60s
 ```
+
+#### Deploy and Run Database Migrations
+
+```bash
+# Deploy Flyway for migrations
+kubectl apply -f manifests/flyway-deployment.yaml
+
+# Wait for Flyway to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=flyway --timeout=60s
+```
+
+The migrations in the `migrations/` folder will be automatically applied.
+
+### 2. Set Up Port Forwarding
+
+To access the PostgreSQL database from your local machine:
+
+```bash
+# Port-forward PostgreSQL
+kubectl port-forward service/postgres 5432:5432
+```
+
+For API access (if deployed to Kubernetes):
+
+```bash
+# Port-forward API 
+kubectl port-forward service/api 5000:80
+```
+
+### 3. Choose Your Development Workflow
+
+This project supports two development workflows for the API:
+
+#### Option 1: Run API Locally (Recommended for API Development)
+
+1. **Set up your development settings**:
+   - Copy the example settings file: `cp AJP.API/appsettings.Development.example.json AJP.API/appsettings.Development.json`
+   - The development settings file uses `localhost` for database connections (requires port forwarding)
+   - This file is ignored by git to allow for personal development settings
+
+2. **Ensure port forwarding is active for PostgreSQL:**
+
+```bash
+kubectl port-forward service/postgres 5432:5432
+```
+
+3. **Run the API locally:**
+
+```bash
+cd AJP.API
+dotnet run
+```
+
+The API will use the connection string from `appsettings.Development.json` which points to `localhost:5432` (forwarded to the Kubernetes PostgreSQL).
+
+#### Option 2: Run API in Kubernetes (Recommended for End-to-End Testing)
+
+1. **Build and deploy API changes to Kubernetes:**
+
+```bash
+# Build the API Docker image
+docker build -t ajp-api:latest -f Dockerfile.api .
+
+# Apply the deployment
+kubectl apply -f api-deployment-updated.yaml
+```
+
+When deployed to Kubernetes, the API automatically uses the Production configuration with connection string `Host=postgres;Port=5432;...` to connect directly to the PostgreSQL service within the cluster.
+
+2. **Set up port forwarding to access the API:**
+
+```bash
+kubectl port-forward service/api 5000:80
+```
+
+3. **Verify the API is running:**
+
+```bash
+curl http://localhost:5000/health
+curl http://localhost:5000/products
+```
+
+### 4. Frontend Development
+
+For frontend development, simply run:
+
+```bash
+cd AJP.Frontend/ClientApp
+npm start
+```
+
+The React development server will start on port 3000. The frontend is configured to call the API at `http://localhost:5000`.
+
+## Working with the Database
+
+### Accessing the Database Directly with DBeaver
+
+To connect to the PostgreSQL database using DBeaver:
+
+1. **Ensure port forwarding is active:**
+
+```bash
+kubectl port-forward service/postgres 5432:5432
+```
+
+2. **Connect using these details:**
+   - Host: localhost
+   - Port: 5432
+   - Database: ajp_db
+   - Username: postgres
+   - Password: postgres
+
+### Managing Database Migrations
+
+The project uses Flyway for database migrations.
 
 #### Creating a New Migration
+
+1. Create a new SQL file in the `migrations/` folder with a versioned filename:
+   - Example: `V3__add_new_table.sql`
+   - Naming convention: `V{version}__{description}.sql`
+
+2. Add your SQL statements to the file.
+
+3. Migrations will be automatically applied when the Flyway pod starts, or you can manually apply them with:
+
 ```bash
-devspace run create-migration <migration_name>
-```
-This creates a timestamped SQL file in the `migrations` folder. After adding your SQL, just run:
-```bash
-devspace run migrate-db
+kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=flyway -o jsonpath="{.items[0].metadata.name}") -- flyway migrate
 ```
 
 #### Checking Migration Status
-```bash
-devspace run db-info
-```
-
-#### Quick Database Access
-Use the `db-connect.sh` script to quickly access the database:
-```bash
-# Interactive mode
-./db-connect.sh
-
-# Run a specific SQL command
-./db-connect.sh "SELECT * FROM products"
-```
-
-#### Testing the API
-
-To test the API endpoints, use the provided script:
 
 ```bash
-./test-api.sh
+kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=flyway -o jsonpath="{.items[0].metadata.name}") -- flyway info
 ```
 
-Or manually with curl:
+## Architecture Overview
+
+- **PostgreSQL**: Runs in Kubernetes only
+- **API**: Can run either locally or in Kubernetes
+  - When in Kubernetes: Uses connection string `Host=postgres;Port=5432;...` from Production configuration
+  - When running locally: Uses connection string `Host=localhost;Port=5432;...` from Development configuration (via port forwarding)
+- **Frontend**: Runs locally in development mode, connects to API via `localhost:5000`
+
+This architecture allows for flexible development where:
+1. Database always runs in Kubernetes for consistency
+2. API can run locally for fast development or in Kubernetes for end-to-end testing
+3. Frontend runs locally for fast development with hot reloading
+
+## Configuration Files
+
+The project uses environment-specific configuration files:
+
+- **appsettings.json**: Base configuration (default settings)
+- **appsettings.Development.json**: Local development settings (git-ignored)
+- **appsettings.Development.example.json**: Example development settings (template for developers)
+- **appsettings.Production.json**: Production settings (used when deployed to Kubernetes)
+
+When you first set up the project, copy the example file:
+```bash
+cp AJP.API/appsettings.Development.example.json AJP.API/appsettings.Development.json
+```
+
+## Useful Commands
+
+### Kubernetes Management
+
+```bash
+# View all pods
+kubectl get pods
+
+# View services
+kubectl get services
+
+# View logs for API
+kubectl logs -l app.kubernetes.io/name=ajp-api
+
+# View logs for PostgreSQL
+kubectl logs -l app.kubernetes.io/component=postgres
+
+# View logs for Flyway
+kubectl logs -l app.kubernetes.io/component=flyway
+
+# Restart API deployment
+kubectl rollout restart deployment ajp-api
+
+# Test API health from within the cluster
+kubectl run curl-test --image=curlimages/curl -i --tty --rm -- curl http://api/health
+```
+
+### Testing the API
 
 ```bash
 # Get all products
-curl -s http://localhost:8080/products | jq
+curl -s http://localhost:5000/products | jq
+
+# Get a specific product
+curl -s http://localhost:5000/products/1 | jq
 
 # Create a new product
-curl -s -X POST http://localhost:8080/products \
+curl -s -X POST http://localhost:5000/products \
   -H "Content-Type: application/json" \
   -d '{"name":"Test Product","description":"A test product","price":19.99}' | jq
 
-# Get a specific product
-curl -s http://localhost:8080/products/1 | jq
+# Update a product
+curl -s -X PUT http://localhost:5000/products/1 \
+  -H "Content-Type: application/json" \
+  -d '{"id":1,"name":"Updated Product","description":"Updated description","price":29.99}' | jq
+
+# Delete a product
+curl -s -X DELETE http://localhost:5000/products/1
 ```
-
-#### Handling Large Migrations (Production)
-
-For larger projects with many migrations, the repository includes several options:
-
-1. **Host Path Volume** (Development): Currently, migrations are stored on the host and mounted into the Flyway container.
-
-2. **Persistent Volume** (Staging/Production): For persistent storage, a PVC is defined in `manifests/flyway-pvc.yaml`.
-
-3. **Custom Docker Image** (Production): For production, build a custom Flyway image that includes your migrations:
-   ```bash
-   docker build -t your-registry/flyway-migrations:v1 -f Dockerfile.flyway .
-   ```
-
-4. **Migration Job** (Production): Run migrations as a Kubernetes Job during deployment:
-   ```bash
-   kubectl apply -f manifests/flyway-job.yaml
-   ```
-
-### 4. Deploying the API
-
-For deploying the API, several options are available:
-
-1. **Using DevSpace**:
-   ```bash
-   # Build API image
-   devspace run build-api
-   
-   # Deploy API
-   devspace run deploy-api
-   ```
-
-2. **Manual Deployment**:
-   ```bash
-   # Build the Docker image
-   docker build -t ajp-api -f Dockerfile.api .
-   
-   # Deploy to Kubernetes
-   kubectl apply -f api-deployment.yaml
-   ```
-
-3. **Using VS Code Tasks**:
-   - Press Ctrl+Shift+P
-   - Type "Tasks: Run Task"
-   - Select `build-api` or `deploy-api`
-
-### 4. Database Structure
-
-The database includes the following tables:
-- `products`: Stores product information including name, description, price, and stock
-- `categories`: Stores category information 
-- `product_categories`: Join table linking products to categories
-- `users`: User accounts with authentication information
-- `user_roles`: Available user roles (Admin, User, Manager)
-- `user_to_roles`: Join table linking users to roles
-- `orders`: Customer orders with status and shipping information
-- `order_items`: Products included in each order
-- `product_reviews`: Customer reviews for products
-- `flyway_schema_history`: Tracks applied migrations
-
-### 5. Sample Data
-
-Sample data has been pre-loaded into the database, including:
-- Electronics, Clothing, and Books categories
-- Sample products in each category
-- Product-category relationships
-- Admin user account
-- Product reviews with ratings
 
 ## Troubleshooting
 
-### Image Pull Issues
+### Cannot connect to PostgreSQL
+- **Issue**: DBeaver connection fails or API cannot connect to database
+- **Solution**: 
+  - Ensure port forwarding is active: `kubectl port-forward service/postgres 5432:5432`
+  - Check PostgreSQL pod is running: `kubectl get pods -l app.kubernetes.io/component=postgres`
+  - Verify PostgreSQL logs: `kubectl logs -l app.kubernetes.io/component=postgres`
 
-If you encounter `ImagePullBackOff` errors:
-1. Try using a different image tag (e.g., postgres:13 instead of postgres:14)
-2. Pull the image locally using `docker pull`
-3. Verify network connectivity to Docker Hub
+### Cannot access API
+- **Issue**: Frontend cannot retrieve data from API
+- **Solution**:
+  - If API is running in Kubernetes:
+    - Ensure port forwarding is active: `kubectl port-forward service/api 5000:80`
+    - Check API pod is running: `kubectl get pods -l app.kubernetes.io/name=ajp-api`
+    - Check API logs: `kubectl logs -l app.kubernetes.io/name=ajp-api`
+  - If API is running locally:
+    - Ensure API is running: `cd AJP.API && dotnet run`
+    - Verify PostgreSQL port forwarding is active
 
-### Database Connection Issues
+### Database migrations not applied
+- **Issue**: Schema changes not showing up in the database
+- **Solution**:
+  - Check Flyway pod logs: `kubectl logs -l app.kubernetes.io/component=flyway`
+  - Manually apply migrations: `kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=flyway -o jsonpath="{.items[0].metadata.name}") -- flyway migrate`
+  - Verify migration files are in the correct format: `V{version}__{description}.sql`
 
-If the API cannot connect to the database:
-1. Verify that the PostgreSQL pod is running with `kubectl get pods`
-2. Check the pod logs with `kubectl logs <postgres-pod-name>`
-3. Ensure the connection string in the API configuration is correct
+### Frontend not connecting to API
+- **Issue**: Frontend displays error or cannot load data
+- **Solution**:
+  - Ensure API is accessible at http://localhost:5000
+  - Check browser console for CORS errors
+  - Verify frontend is configured with the correct API URL
 
-### VS Code Debugging Issues
+## Project Structure
 
-If debugging doesn't work:
-1. Ensure you've installed the recommended extensions (Ctrl+Shift+P > "Show Recommended Extensions")
-2. Make sure the API is built before trying to debug it
-3. Check that port forwarding is working for the database connection
-
-## Resources
-
-- [DevSpace Documentation](https://devspace.sh/docs/getting-started/introduction)
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [Flyway Documentation](https://flywaydb.org/documentation/)
-
-## 2. Creating the .NET Solution Structure with DDD Architecture
+```
+AJP.KubeExample.sln          # Solution file
+api-deployment.yaml          # Kubernetes deployment for API
+Dockerfile.api               # Dockerfile for API
+Dockerfile.flyway            # Dockerfile for Flyway
+AJP.API/                     # API project
+  appsettings.json           # API configuration
+  Program.cs                 # API entry point
+AJP.Application/             # Application layer (CQRS, validation)
+AJP.Domain/                  # Domain layer (entities, interfaces)
+AJP.Infrastructure/          # Infrastructure layer
+AJP.Infrastructure.Persistence/ # Database access
+AJP.Frontend/                # React frontend
+  ClientApp/                 # React application
+manifests/                   # Kubernetes manifests
+  postgres-deployment.yaml   # PostgreSQL deployment
+  postgres-service.yaml      # PostgreSQL service
+  flyway-deployment.yaml     # Flyway deployment
+migrations/                  # SQL migration files
+  V1__Initial_Schema.sql     # Initial database schema
+  V2__Add_Users.sql          # Additional migrations
+```
 
 Before setting up Kubernetes, let's create a properly structured .NET solution following Domain-Driven Design principles:
 
