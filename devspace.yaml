@@ -26,8 +26,7 @@ images:
   api:
     image: ajp-api
     dockerfile: ./Dockerfile.api
-    build:
-      disabled: false
+    skipPush: true
 
 # This is a list of `deployments` that DevSpace can create for this project
 deployments:
@@ -35,10 +34,10 @@ deployments:
     # This deployment uses `kubectl` but you can also define `helm` deployments
     kubectl:
       manifests:
-        - manifests/postgres-deployment.yaml
-        - manifests/postgres-service.yaml
-        - manifests/flyway-pvc.yaml
-        - manifests/flyway-deployment.yaml
+        - postgres-deployment.yaml
+        - postgres-service.yaml
+        - flyway-pvc.yaml
+        - flyway-deployment.yaml
 
   api:
     kubectl:
@@ -113,7 +112,12 @@ commands:
       ./copy-migrations.sh
 
       echo "Applying migrations to database..."
-      kubectl exec $FLYWAY_POD -- flyway -url=jdbc:postgresql://postgres:5432/ajp_db -user=postgres -password=${POSTGRES_PASSWORD} migrate
+
+      # Let's use the fixed migration next time
+      kubectl exec $FLYWAY_POD -- rm /flyway/sql/V20250921004500__add_comprehensive_test_data.sql
+
+      # Apply the migrations
+      kubectl exec $FLYWAY_POD -- flyway -url=jdbc:postgresql://postgres:5432/ajp_db -user=postgres -password=${POSTGRES_PASSWORD} -outOfOrder=true migrate
 
       echo "Migration complete!"
 
