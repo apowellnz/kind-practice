@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="FluentValidation" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,6 +22,18 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AJP.Application\AJP.Application.csproj" />
+    <ProjectReference Include="..\AJP.Domain\AJP.Domain.csproj" />
+    <ProjectReference Include="..\AJP.Infrastructure\AJP.Infrastructure.csproj" />
+    <ProjectReference Include="..\AJP.Infrastructure.Persistence\AJP.Infrastructure.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AJP.Application/Common/" />
+    <Folder Include="AJP.Application/Common/Behaviors/" />
   </ItemGroup>
 
 </Project>
