@@ -153,15 +153,42 @@ This script will:
 
 After switching, you need to restart the frontend for the changes to take effect.
 
+#### Managing API Port Forwarding
+
+To access the Kubernetes API from your local machine, you can use the API port-forwarding script:
+
+```bash
+# Start API port forwarding (creates the service if needed)
+./api-port-forward.sh start
+
+# Check status
+./api-port-forward.sh status
+
+# Stop port forwarding
+./api-port-forward.sh stop
+```
+
+You can also use VS Code Tasks to manage API port-forwarding by:
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+2. Type "Tasks: Run Task"
+3. Select one of the following:
+   - `api-port-forward-start` - Start the port-forward in the background
+   - `api-port-forward-status` - Check if port-forwarding is running
+   - `api-port-forward-stop` - Stop the port-forward
+
 ## Working with the Database
 
 ### Accessing the Database Directly with DBeaver
 
 To connect to the PostgreSQL database using DBeaver:
 
-1. **Ensure port forwarding is active:**
+1. **Start database port-forwarding:**
 
 ```bash
+# Method 1: Use the script (recommended, runs in background)
+./db-port-forward.sh start
+
+# Method 2: Use kubectl directly (runs in current terminal)
 kubectl port-forward service/postgres 5432:5432
 ```
 
@@ -171,6 +198,23 @@ kubectl port-forward service/postgres 5432:5432
    - Database: ajp_db
    - Username: postgres
    - Password: postgres
+
+3. **Check port-forward status or stop it when done:**
+```bash
+# Check if port-forwarding is running
+./db-port-forward.sh status
+
+# Stop port-forwarding when finished
+./db-port-forward.sh stop
+```
+
+You can also use VS Code Tasks to manage database port-forwarding by:
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+2. Type "Tasks: Run Task"
+3. Select one of the following:
+   - `db-port-forward-start` - Start the port-forward in the background
+   - `db-port-forward-status` - Check if port-forwarding is running
+   - `db-port-forward-stop` - Stop the port-forward
 
 ### Managing Database Migrations
 

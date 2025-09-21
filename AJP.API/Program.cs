@@ -57,8 +57,11 @@ public static class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
-        app.UseHttpsRedirection();
+        else
+        {
+            // Only use HTTPS redirection in non-development environments
+            app.UseHttpsRedirection();
+        }
 
         // Use CORS
         app.UseCors("AllowAll");
